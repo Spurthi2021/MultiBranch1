@@ -1,0 +1,61 @@
+pipeline{
+    agent any
+    tools {
+    maven 'Maven'
+    }
+    
+    parameters {
+     choice choices: ['1.1', '1.2', '1.3', '1.4'], description: 'Select Version ', name: 'Version'
+     string defaultValue: 'Maven', name: 'Tool'
+     booleanParam defaultValue: true, name: 'Build'
+    }
+   stages{
+       stage('init'){
+           steps{
+           echo "Select the Version: ${params.Version}"
+           }
+       }
+       stage('Checkout'){
+           when{
+               expression{
+                   params.Build
+               }
+           }
+           steps{
+                git branch: 'main', url: 'https://github.com/Spurthi2021/java-getting-started'
+           }
+          
+       }
+       stage('Build'){
+           when{
+               expression{
+                   params.Tool == 'Maven'
+               }
+           }
+           steps{
+              bat 'mvn clean install'
+           }
+       }
+       
+   }
+    post {
+        // Runs regardless of the pipeline result (success, failure, or abort)
+        always {
+            echo 'This runs always after the build, no matter what.'
+            // archiveArtifacts artifacts: '**/target/*.jar', allowEmptyArchive: true
+        }
+        
+        // Runs only if the pipeline was successful
+        success {
+            echo 'Build was successful!'
+            // Add other success-specific actions here
+        }
+
+        // Runs only if the pipeline fails
+        failure {
+            echo 'Build failed!'
+            // Add actions like sending notifications for failed builds
+        }
+
+   }
+}
